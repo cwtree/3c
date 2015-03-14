@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Mapper">
+	<resultMap type="com.cwtree.bean.UserInfo" id="userinfo"></resultMap>
+	<select id="userlogin" parameterType="string" resultMap="userinfo">
+	 		<![CDATA[
+	 		SELECT USERID,USERNAME,PASSWORD,CREATEDATE
+	 		FROM USERINFO
+			WHERE USERNAME=#{username}
+	 		]]>
+	</select>
+
+	<delete id="deletegoods" parameterType="java.lang.String">
+		<![CDATA[
+		DELETE FROM GOODS WHERE GOODSID=#{goodsId}
+		]]>
+	</delete>
+
+	<select id="getallgoods" resultType="com.cwtree.bean.Goods">
+		<![CDATA[
+		SELECT GOODSID,GOODSNAME,GOODSKIND,GOODSCB,GOODSNUMBER 
+		FROM GOODS
+		ORDER BY GOODSKIND,GOODSNAME,GOODSNUMBER ASC
+		]]>
+	</select>
+
+	<update id="updategoods" parameterType="com.cwtree.bean.Goods">
+		<![CDATA[
+		UPDATE GOODS 
+		SET GOODSNAME=#{goodsName,jdbcType=VARCHAR},
+		GOODSKIND=#{goodsKind,jdbcType=VARCHAR},
+		GOODSCB=#{goodsCb,jdbcType=DOUBLE},
+		GOODSNUMBER=#{goodsNumber,jdbcType=VARCHAR}
+		WHERE GOODSID=#{goodsId,jdbcType=VARCHAR}
+		]]>
+	</update>
+
+	<update id="updatepwd" parameterType="java.util.HashMap">
+		<![CDATA[
+	 		UPDATE USERINFO SET PASSWORD=#{password} WHERE USERNAME=#{username}
+	 		]]>
+	</update>
+
+	<select id="nowkinds" resultType="java.lang.String">
+	<![CDATA[
+		SELECT DISTINCT(GOODSKIND) GOODSKIND FROM GOODS ORDER BY GOODSKIND ASC
+	]]>
+	</select>
+	
+	<select id="getgoodsbykind" resultType="com.cwtree.bean.Goods" parameterType="java.lang.String">
+		<![CDATA[
+			SELECT GOODSID,GOODSNAME,GOODSKIND,GOODSCB,GOODSNUMBER 
+			FROM GOODS
+			WHERE GOODSKIND=#{kind}
+			ORDER BY GOODSNAME ASC
+		]]>
+	</select>
+
+	<select id="getallkinds" resultType="com.cwtree.bean.GoodsKind">
+		<![CDATA[
+		SELECT KINDSID,KIND FROM GOODSKIND ORDER BY KIND ASC
+		]]>
+	</select>
+	
+	<insert id="addkinds" parameterType="java.lang.String">
+		<![CDATA[
+		INSERT INTO GOODSKIND VALUES(ALL_SEQ.NEXTVAL,#{kind,jdbcType=VARCHAR})
+		]]>
+	</insert>
+
+	<insert id="shanghuo" parameterType="com.cwtree.bean.Goods">
+		INSERT INTO 
+		GOODS(GOODSID,GOODSNAME,GOODSKIND,GOODSCB,GOODSNUMBER) 
+		VALUES(ALL_SEQ.NEXTVAL,#{goodsName,jdbcType=VARCHAR},
+					#{goodsKind,jdbcType=VARCHAR},
+					#{goodsCb,jdbcType=VARCHAR},
+					#{goodsNumber,jdbcType=DOUBLE})
+	</insert>
+
+	<select id="getgoodsbyid" parameterType="java.lang.String" resultType="com.cwtree.bean.Goods">
+		<![CDATA[
+		SELECT GOODSID,GOODSNAME,GOODSKIND,GOODSCB,GOODSNUMBER FROM GOODS WHERE GOODSID=#{goodsId}
+		]]>
+	</select>
+
+	<update id="outOne" parameterType="java.util.HashMap">
+		<![CDATA[
+	 		UPDATE GOODS SET GOODSNUMBER=GOODSNUMBER-#{goodsNumber} WHERE GOODSID=#{goodsid}
+	 		]]>
+	</update>
+	
+	<insert id="saleout" parameterType="com.cwtree.bean.DealGoods">
+		<![CDATA[
+	 		INSERT INTO DEALGOODS(DGID,GOODSID,GOODSPRICE,DEALNUMBER,DEALDATE) 
+	 		VALUES(ALL_SEQ.NEXTVAL,
+	 						#{goodsId,jdbcType=VARCHAR},
+	 						#{goodsPrice,jdbcType=DOUBLE},
+	 						#{dealNumber,jdbcType=DOUBLE},
+	 						#{dealDate,jdbcType=VARCHAR})
+	 		]]>
+	</insert>
+	
+	<update id="inOne" parameterType="java.lang.String">
+		<![CDATA[
+	 		UPDATE GOODS SET GOODSNUMBER=GOODSNUMBER+1 WHERE GOODSID=#{goodsid}
+	 		]]>
+	</update>
+
+	<select id="reportbyday"  resultType="com.cwtree.bean.Report" parameterType="java.lang.String">
+	<![CDATA[
+		SELECT A.GOODSID GOODSID,
+			  A.GOODSNAME GOODSNAME,
+			  A.GOODSKIND GOODSKIND,
+			  A.GOODSCB GOODSCB,
+			  B.GOODSPRICE GOODSPRICE,
+			  B.DEALNUMBER DEALNUMBER,
+			  B.DEALNUMBER*(B.GOODSPRICE-A.GOODSCB) LIRUN,
+ 				 DEALDATE
+			FROM GOODS A,
+			  DEALGOODS B
+			WHERE A.GOODSID=B.GOODSID AND substr(DEALDATE,0,10)=#{daterange}
+			ORDER BY LIRUN DESC,DEALDATE DESC
+		]]>
+	</select>
+
+	<select id="reportbymonth"  resultType="com.cwtree.bean.Report" parameterType="java.lang.String">
+	<![CDATA[
+		SELECT A.GOODSID GOODSID,
+			  A.GOODSNAME GOODSNAME,
+			  A.GOODSKIND GOODSKIND,
+			  A.GOODSCB GOODSCB,
+			  B.GOODSPRICE GOODSPRICE,
+			  B.DEALNUMBER DEALNUMBER,
+			  B.DEALNUMBER*(B.GOODSPRICE-A.GOODSCB) LIRUN,
+ 				 DEALDATE
+			FROM GOODS A,
+			  DEALGOODS B
+			WHERE A.GOODSID=B.GOODSID AND substr(DEALDATE,0,7)=#{daterange}
+			ORDER BY LIRUN DESC,DEALDATE DESC
+		]]>
+	</select>
+	
+	<select id="reportbyyear"  resultType="com.cwtree.bean.Report" parameterType="java.lang.String">
+	<![CDATA[
+		SELECT A.GOODSID GOODSID,
+			  A.GOODSNAME GOODSNAME,
+			  A.GOODSKIND GOODSKIND,
+			  A.GOODSCB GOODSCB,
+			  B.GOODSPRICE GOODSPRICE,
+			  B.DEALNUMBER DEALNUMBER,
+			  B.DEALNUMBER*(B.GOODSPRICE-A.GOODSCB) LIRUN,
+ 				 DEALDATE
+			FROM GOODS A,
+			  DEALGOODS B
+			WHERE A.GOODSID=B.GOODSID AND substr(DEALDATE,0,4)=#{daterange}
+			ORDER BY LIRUN DESC,DEALDATE DESC
+		]]>
+	</select>
+
+	<select id="getgoodsbykindsid" resultType="java.lang.Integer" parameterType="java.lang.String">
+	<![CDATA[
+		SELECT COUNT(1)
+		FROM GOODS A,GOODSKIND B
+		WHERE A.GOODSKIND=B.KIND AND A.GOODSNUMBER>0 AND B.KINDSID=#{kindsId}
+		]]>
+	</select>
+
+	<delete id="deletekinds" parameterType="java.lang.String">
+	<![CDATA[
+		DELETE FROM GOODSKIND WHERE KINDSID=#{kindsId}
+		]]>
+	</delete>
+
+	<select id="calcSum" resultType="java.lang.String">
+	<![CDATA[
+		SELECT SUM(GOODSCB*GOODSNUMBER) FROM GOODS
+	]]>
+	</select>
+	
+	<select id="calcSumByKind" resultType="java.lang.String">
+	<![CDATA[
+		SELECT SUM(GOODSCB*GOODSNUMBER) FROM GOODS WHERE GOODSKIND=#{goodsKind,jdbcType=VARCHAR}
+	]]>
+	</select>
+
+</mapper>
+
+     
